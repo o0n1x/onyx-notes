@@ -1,8 +1,9 @@
 #creating graph objects and managing them
 
 import networkx as nx
+from vault import Vault
 
-def create_graph(vault):
+def create_graph(vault : Vault):
     "main function of graph.py. returns a graph given a vault"
     pass
 

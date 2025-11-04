@@ -7,7 +7,7 @@ from datetime import datetime , date
 class Note():
     
     
-    def __init__(self,raw_md = None):
+    def __init__(self,raw_md : str = None ):
         """
         initalize a note object.
         accepts input raw text from frontmatter file (md file with yaml as header)
@@ -33,7 +33,7 @@ class Note():
         self.links = []
     
     #TODO: Add support for custom attributes
-    def get_formatted_md(self):
+    def get_formatted_md(self) -> str:
         "returns markdown string of the note formatted with updated metadata if any"
         md = ""
         md += "\n---\n"
@@ -59,7 +59,7 @@ class Note():
 
     #TODO: make it possible so that dates can use / instead of - 
     
-    def parse_attributes(self):
+    def parse_attributes(self) -> None:
         """
         internal function used when initalizing a note object.
         parses attributes dictionary for expected values: tags,title,created, and last_modified

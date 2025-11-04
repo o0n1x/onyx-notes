@@ -6,12 +6,12 @@ from datetime import datetime , date
 
 class Note():
     
-    """
-    initalize a note object.
-    accepts input raw text from frontmatter file (md file with yaml as header)
-    """
+    
     def __init__(self,raw_md = None):
-
+        """
+        initalize a note object.
+        accepts input raw text from frontmatter file (md file with yaml as header)
+        """
         #raw text (raw_md includes header)
         self.raw_md = raw_md 
         try:
@@ -28,9 +28,13 @@ class Note():
             self.attributes = None
         #metadata
         self.parse_attributes()
+
+        #links to other notes
+        self.links = []
     
     #TODO: Add support for custom attributes
     def get_formatted_md(self):
+        "returns markdown string of the note formatted with updated metadata if any"
         md = ""
         md += "\n---\n"
         md+= f"title: {self.title}\n"
@@ -54,11 +58,12 @@ class Note():
         return False
 
     #TODO: make it possible so that dates can use / instead of - 
-    """
-    internal function used when initalizing a note object.
-    parses attributes dictionary for expected values: tags,title,created, and last_modified
-    """
+    
     def parse_attributes(self):
+        """
+        internal function used when initalizing a note object.
+        parses attributes dictionary for expected values: tags,title,created, and last_modified
+        """
         if self.attributes and type(self.attributes) == dict:
             #tags
             if "tags" in self.attributes and type(self.attributes["tags"]) == list:

@@ -3,6 +3,7 @@
 import networkx as nx
 
 def create_graph(vault):
+    "main function of graph.py. returns a graph given a vault"
     pass
 
 def get_most_connected(graph, n = 10):

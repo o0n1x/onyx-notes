@@ -1,10 +1,10 @@
 import io
 import os
-from vault import Vault
 
 #TODO Replace each print function to a suitable error for UI
-def read_note(path) -> str:
+def read_note(vault_path,note_path) -> str:
     "given a path read the note(md) file"
+    path = os.path.join(vault_path,note_path)
     if os.path.exists(path) and os.path.isfile(path):
         if path.endswith(".md"):
             try:
@@ -20,11 +20,11 @@ def read_note(path) -> str:
     else:
         print("Error: invalid file path to read")
         return None
-    
 
-def write_note(note : str,path) -> None:
+
+def write_note(vault_path,note_path,note: str) -> None:
     "writes raw md string to the given path file"
-    
+    path = os.path.join(vault_path,note_path)
     if os.path.exists(os.path.dirname(path)):
         if path.endswith(".md"):
             try:
@@ -41,10 +41,9 @@ def write_note(note : str,path) -> None:
         return
     pass
 
-def read_vault_folder(vault: Vault) -> list:
+def read_vault_folder(vault_root: str) -> list:
     "scans a folder for notes and returns a list of notes relative paths"
-    
-    vault_root = vault.root_path
+
     path_list = []
     for root , _ , files in os.walk(vault_root):
         for file in files:

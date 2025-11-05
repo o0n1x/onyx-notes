@@ -3,7 +3,7 @@
 import re
 from frontmatter import Frontmatter
 from datetime import datetime , date
-
+from note_io import write_note
 class Note():
     
     
@@ -32,11 +32,12 @@ class Note():
         #links to other notes
         self.links = []
     
+
     #TODO: Add support for custom attributes
     def get_formatted_md(self) -> str:
         "returns markdown string of the note formatted with updated metadata if any"
         md = ""
-        md += "\n---\n"
+        md += "---\n"
         md+= f"title: {self.title}\n"
         md += f"tags: {self.tags}\n"
         md += f"created: {self.created_date}\n"

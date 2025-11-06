@@ -146,6 +146,8 @@ class TestVault(unittest.TestCase):
         vault.refresh()
         self.assertNotEqual(tags,vault.notes["python_basics.md"].tags)
         self.assertNotEqual(tags,vault.notes["database_design.md"].tags)
+        with open(ROOT + "test_vault3" + "/python_basics.md","w") as f:
+            f.write(md)
     
 
 #integration test

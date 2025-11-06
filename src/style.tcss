@@ -1,0 +1,18 @@
+VaultPanel {
+    width: 120;
+    height: auto;
+    border: solid $primary;
+}
+
+#vault_search {
+    margin: 1 2;
+}
+
+#vault_list {
+    height: 10;
+    margin: 0 2 1 2;
+}
+
+#vault_label {
+    text-align: center;
+}

@@ -8,7 +8,7 @@ def read_note(vault_path,note_path) -> str:
     if os.path.exists(path) and os.path.isfile(path):
         if path.endswith(".md"):
             try:
-                with open(path, encoding="utf-8") as f:
+                with open(path,"r", encoding="utf-8") as f:
                     read_data = f.read()
                     return read_data
             except:
@@ -28,7 +28,7 @@ def write_note(vault_path,note_path,note: str) -> None:
     if os.path.exists(os.path.dirname(path)):
         if path.endswith(".md"):
             try:
-                with open(path, encoding="utf-8") as f:
+                with open(path,"w", encoding="utf-8") as f:
                     f.write(note)
                     
             except:

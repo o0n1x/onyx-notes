@@ -1,2 +1,2 @@
-python3 tui.py
+python3 src/tui.py
 

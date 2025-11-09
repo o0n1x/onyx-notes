@@ -1,18 +1,196 @@
-VaultPanel {
+/* ===== MODALS ===== */
+
+ConfirmModal {
+    align: center middle;
+}
+
+ConfirmModal #dialog {
+    width: 50;
+    height: auto;
+    border: thick $error;
+    background: $surface;
+    padding: 2;
+}
+
+ConfirmModal #message {
+    text-align: center;
+    margin: 2;
+}
+
+ConfirmModal #buttons {
+    layout: horizontal;
+    align: center middle;
+    height: auto;
+}
+
+ConfirmModal Button {
+    margin: 0 1;
+}
+
+InputModal {
+    align: center middle;
+}
+
+InputModal #dialog {
+    width: 60;
+    height: auto;
+    border: thick $accent;
+    background: $surface;
+    padding: 2;
+}
+
+InputModal #title {
+    text-align: center;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+InputModal #prompt {
+    margin: 1 0;
+}
+
+InputModal Input {
+    margin-bottom: 1;
+}
+
+InputModal #buttons {
+    layout: horizontal;
+    align: center middle;
+    height: auto;
+}
+
+InputModal Button {
+    margin: 0 1;
+}
+
+InputModal #error {
+    color: $error;
+    text-align: center;
+    height: 1;
+}
+
+/* ===== VAULT PAGE ===== */
+
+VaultPage {
     width: 120;
     height: auto;
     border: solid $primary;
 }
 
-#vault_search {
+VaultPage #vault_search {
     margin: 1 2;
 }
 
-#vault_list {
+VaultPage #vault_list {
     height: 10;
     margin: 0 2 1 2;
 }
 
-#vault_label {
+VaultPage #vault_label {
     text-align: center;
+}
+
+/* ===== NOTES SCREEN ===== */
+
+#main_layout {
+    layout: horizontal;
+    height: 100%;
+}
+
+#tree_container {
+    width: 30;
+    border-right: solid $primary;
+}
+
+#tree_container.hidden {
+    display: none;
+    width: 0;
+}
+
+#vault_name {
+    background: $primary;
+    color: $text;
+    text-align: center;
+    padding: 1;
+}
+
+DirectoryTree {
+    height: 1fr;
+}
+
+#panel_container {
+    width: 1fr;
+    layout: horizontal;
+}
+
+.panel {
+    width: 1fr;
+}
+
+#status_bar {
+    dock: bottom;
+    height: 1;
+    background: $panel;
+    color: $text;
+    padding: 0 2;
+}
+
+/* ===== EDITOR PANEL ===== */
+
+EditorPanel {
+    border: solid $primary;
+}
+
+EditorPanel .panel-title {
+    background: $primary;
+    color: $text;
+    text-align: center;
+    height: 1;
+}
+
+EditorPanel TextArea {
+    height: 1fr;
+}
+
+/* ===== VIEWER PANEL ===== */
+
+ViewerPanel {
+    border: solid $accent;
+}
+
+ViewerPanel .panel-title {
+    background: $accent;
+    color: $text;
+    text-align: center;
+    height: 1;
+}
+
+ViewerPanel Markdown {
+    height: 1fr;
+}
+
+/* ===== STATS PANEL ===== */
+
+StatsPanel {
+    border: solid $success;
+}
+
+StatsPanel .panel-title {
+    background: $success;
+    color: $text;
+    text-align: center;
+    height: 1;
+}
+
+StatsPanel #stats-content {
+    padding: 2;
+}
+
+StatsPanel .stat-row {
+    margin: 1 0;
+}
+
+StatsPanel .stat-label {
+    color: $accent;
+    text-style: bold;
 }

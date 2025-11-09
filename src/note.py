@@ -23,6 +23,7 @@ class Note():
         if self.yaml_header_dict:
             self.yaml_header = self.yaml_header_dict["frontmatter"]
             self.attributes = self.yaml_header_dict["attributes"] 
+            self.body = self.yaml_header_dict["body"] 
         else:
             self.yaml_header = None
             self.attributes = None

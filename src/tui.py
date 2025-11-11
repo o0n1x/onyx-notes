@@ -107,7 +107,7 @@ class VaultPage(Screen):
         yield Footer()
         with Center():
             with Vertical(id="vault_chooser"):
-                yield Static("📚 Select Vault", id="vault_label")
+                yield Static("Select Vault", id="vault_label")
                 yield OptionList(id="vault_list")
                 yield Input(placeholder="Search vaults...", id="vault_search")
                 
@@ -122,7 +122,7 @@ class VaultPage(Screen):
                 with open(self.vaults_config_path, 'r') as f:
                     self.vault_paths = [line.strip() for line in f if line.strip()]
             except Exception as e:
-                self.notify(f"Error: {e}", severity="error")
+                self.notify(f"Error loading vault: {e}", severity="error")
                 self.vault_paths = []
         else:
             self.vault_paths = []
@@ -134,7 +134,7 @@ class VaultPage(Screen):
                 for path in self.vault_paths:
                     f.write(f"{path}\n")
         except Exception as e:
-            self.notify(f"Error: {e}", severity="error")
+            self.notify(f"Error saving vault: {e}", severity="error")
             
     def refresh_vault_list(self):
         opt_list = self.query_one(OptionList)
@@ -258,7 +258,7 @@ class VaultPage(Screen):
                 self.notify(f"Removed: {vault_name}")
                 self.query_one(Input).focus()
                     
-        self.app.push_screen(ConfirmModal(f"Remove '{vault_name}'?\n(Files NOT deleted)", "⚠️  Confirm"), on_confirm)
+        self.app.push_screen(ConfirmModal(f"Remove '{vault_name}'?\n(Files NOT deleted)", "Confirm"), on_confirm)
         
     def action_refresh(self):
         self.load_vaults()
@@ -272,7 +272,8 @@ class VaultPage(Screen):
 
 # note editing/viewing screen
 
-from textual.widgets import DirectoryTree, TextArea, Markdown, Static
+from textual.widgets import DirectoryTree, TextArea, Markdown, Static 
+from textual.containers import VerticalScroll
 from note_io import write_note, read_note
 from note import Note
 
@@ -281,8 +282,8 @@ class EditorPanel(Vertical):
     """Markdown editor panel"""
 
     def compose(self) -> ComposeResult:
-        yield Label("📝 Editor", classes="panel-title")
-        yield TextArea(id="editor", language="markdown")
+        yield Label(" Editor ", classes="panel-title")
+        yield TextArea(id="editor", language="markdown", theme="monokai", soft_wrap=True,)
         
     def get_text(self) -> str:
         """Get current editor content"""
@@ -298,8 +299,9 @@ class ViewerPanel(Vertical):
 
     
     def compose(self) -> ComposeResult:
-        yield Label("👁️ Viewer", classes="panel-title")
-        yield Markdown(id="viewer")
+        yield Label(" Viewer ", classes="panel-title")
+        with VerticalScroll():
+            yield Markdown(id="viewer")
         
     def set_markdown(self, text: str):
         """Set markdown content to render"""
@@ -310,7 +312,7 @@ class StatsPanel(Vertical):
     """Note statistics panel"""
 
     def compose(self) -> ComposeResult:
-        yield Label("📊 Stats", classes="panel-title")
+        yield Label(" Metadata ", classes="panel-title")
         yield Static(id="stats-content")
         
     def set_stats(self, note: Note):
@@ -320,7 +322,7 @@ class StatsPanel(Vertical):
             return
             
         # Calculate stats
-        content = note.raw_md
+        content = note.body
         words = len(content.split())
         chars = len(content)
         lines = content.count('\n') + 1
@@ -333,9 +335,9 @@ class StatsPanel(Vertical):
 [bold]Created:[/bold] {note.created_date.strftime('%Y-%m-%d %H:%M')}
 [bold]Modified:[/bold] {note.modified_date.strftime('%Y-%m-%d %H:%M')}
 
+[bold]Lines:[/bold] {lines:,}
 [bold]Words:[/bold] {words:,}
 [bold]Characters:[/bold] {chars:,}
-[bold]Lines:[/bold] {lines:,}
 """
         
         self.query_one("#stats-content").update(stats_text)
@@ -364,9 +366,9 @@ class NotesScreen(Screen):
         """
         super().__init__()
         self.vault = vault
-        self.current_note_path = None  # Relative path
+        self.current_note_path = None  
         self.tree_visible = True
-        self.active_panels = {"editor", "viewer"}  # Start with these
+        self.active_panels = {"editor", "viewer"}  # This are the panels that will open at statup
         
     def compose(self) -> ComposeResult:
         yield Header()
@@ -391,20 +393,15 @@ class NotesScreen(Screen):
         tree.show_root = False
         tree.show_guides = True
         
-        # Panels are already mounted in compose
-        self.active_panels = {"editor", "viewer"}
-        
         self.update_status("Ready")
         
     def on_directory_tree_file_selected(self, event: DirectoryTree.FileSelected):
         """User selected a file in tree"""
         file_path = Path(event.path)
         
-        # Only handle .md files
         if file_path.suffix != '.md':
             return
             
-        # Get relative path
         relative_path = os.path.relpath(file_path, self.vault.root_path)
         
         try:
@@ -421,6 +418,7 @@ class NotesScreen(Screen):
         except Exception as e:
             self.notify(f"Error loading note: {e}", severity="error")
             
+
     def action_new_note(self):
         """Create new note or folder"""
         def on_create(input_text: str | None):
@@ -428,90 +426,52 @@ class NotesScreen(Screen):
                 return
                 
             input_text = input_text.strip()
+            is_folder = input_text.endswith('/')
             
-            # Check if creating a folder (ends with /)
-            if input_text.endswith('/'):
-                folder_path = input_text.rstrip('/')
-                full_folder_path = os.path.join(self.vault.root_path, folder_path)
-                
-                try:
-                    os.makedirs(full_folder_path, exist_ok=True)
-                    
-                    # Refresh vault and tree
-                    self.vault.refresh()
-                    tree = self.query_one(DirectoryTree)
-                    tree.reload()
-                    
-                    self.update_status(f"Created folder: {folder_path}")
-                    self.notify(f"Created folder: {folder_path}", severity="information")
-                    
-                except Exception as e:
-                    self.notify(f"Error creating folder: {e}", severity="error")
-                    
+            # Convert to Path
+            path = Path(input_text.rstrip('/'))
+            
+            # Add .md extension if it's a file
+            if not is_folder and not path.suffix:
+                path = path.with_suffix('.md')
+            
+            # Get full path
+            full_path = Path(self.vault.root_path) / path
+            
+            if full_path.exists():
+                self.notify(f"{'Folder' if is_folder else 'Note'} already exists!", severity="error")
                 return
             
-            # Creating a note file
-            filename = input_text
-            
-            # Ensure .md extension
-            if not filename.endswith('.md'):
-                filename += '.md'
-            
-            # Check if path contains folders
-            if '/' in filename or '\\' in filename:
-                # Split into folder and filename
-                path_parts = filename.replace('\\', '/').split('/')
-                note_filename = path_parts[-1]
-                folder_path = '/'.join(path_parts[:-1])
-                
-                # Create folder if it doesn't exist
-                full_folder_path = os.path.join(self.vault.root_path, folder_path)
-                os.makedirs(full_folder_path, exist_ok=True)
-                
-                # Full note path (relative)
-                relative_note_path = filename
-            else:
-                # Simple filename in root
-                relative_note_path = filename
-                note_filename = filename
-            
-            # Full absolute path
-            note_path = os.path.join(self.vault.root_path, relative_note_path)
-            
-            if os.path.exists(note_path):
-                self.notify("Note already exists!", severity="error")
-                return
-                
             try:
-                # Create title from filename
-                title = note_filename.replace('.md', '').replace('-', ' ').replace('_', ' ').title()
+                if is_folder:
+                    # Create folder
+                    full_path.mkdir(parents=True, exist_ok=True)
+                    self.update_status(f"Created folder: {path}")
+                    self.notify(f"Created folder: {path}", severity="information")
+                else:
+                    # Create parent directories if needed
+                    full_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Create note
+                    title = path.stem.replace('-', ' ').replace('_', ' ').title()
+                    note = Note(f"# {title}\n\n")
+                    note.title = title
+                    
+                    write_note(self.vault.root_path, str(path), note.get_formatted_md())
+                    
+                    # Load new note
+                    self.current_note_path = str(path)
+                    self.update_all_panels()
+                    
+                    self.update_status(f"Created: {path}")
+                    self.notify(f"Created note: {path}", severity="information")
                 
-                # Create Note object with just title and body
-                note = Note(f"# {title}\n\n")
-                note.title = title
-                
-                # Use Note's formatter to create the file
-                formatted_md = note.get_formatted_md()
-                
-                # Write using note_io
-                write_note(self.vault.root_path, relative_note_path, formatted_md)
-                
-                # Refresh vault
+                # Refresh for both cases
                 self.vault.refresh()
-                
-                # Load new note
-                self.current_note_path = relative_note_path
-                self.update_all_panels()
-                
-                # Refresh tree
-                tree = self.query_one(DirectoryTree)
-                tree.reload()
-                
-                self.update_status(f"Created: {relative_note_path}")
-                self.notify(f"Created note: {relative_note_path}", severity="information")
+                self.query_one(DirectoryTree).reload()
                 
             except Exception as e:
-                self.notify(f"Error creating note: {e}", severity="error")
+                self.notify(f"Error: {e}", severity="error")
                 
         self.app.push_screen(
             InputModal(
@@ -557,11 +517,19 @@ class NotesScreen(Screen):
         self.app.push_screen(
             ConfirmModal(
                 message=f"Delete note '{note_name}'?\nThis cannot be undone!",
-                title="⚠️  Confirm Deletion"
+                title="Confirm Deletion"
             ),
             callback=on_confirm
         )
         
+    
+    def get_panel_instance(self, panel_class):
+        """Get instance of specific panel type"""
+        for panel in self.query(".panel"):
+            if isinstance(panel, panel_class):
+                return panel
+        return None
+
     def action_save_note(self):
         """Save current note - preserves cursor position"""
         if not self.current_note_path:
@@ -664,7 +632,6 @@ class NotesScreen(Screen):
             return
             
         container = self.query_one("#panel_container")
-        
         if panel_type == "editor":
             panel = EditorPanel()
         elif panel_type == "viewer":
@@ -720,23 +687,13 @@ class NotesScreen(Screen):
         note = self.vault.notes[self.current_note_path]
         
         if isinstance(panel, EditorPanel):
-            # Show raw markdown in editor
             panel.set_text(note.raw_md)
-            
         elif isinstance(panel, ViewerPanel):
-            # Show rendered markdown in viewer
             panel.set_markdown(note.body)
-            
         elif isinstance(panel, StatsPanel):
-            # Show stats
             panel.set_stats(note)
             
-    def get_panel_instance(self, panel_class):
-        """Get instance of specific panel type"""
-        for panel in self.query(".panel"):
-            if isinstance(panel, panel_class):
-                return panel
-        return None
+
         
     def update_status(self, message: str):
         """Update status bar"""

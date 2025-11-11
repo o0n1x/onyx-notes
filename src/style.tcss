@@ -166,7 +166,11 @@ ViewerPanel .panel-title {
 }
 
 ViewerPanel Markdown {
-    height: 1fr;
+    height: 100%;
+}
+
+ViewerPanel VerticalScroll {
+    height: 1fr;  
 }
 
 /* ===== STATS PANEL ===== */
